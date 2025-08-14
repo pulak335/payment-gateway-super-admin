@@ -1,6 +1,10 @@
 import React from 'react';
 
 import { Link } from 'react-router-dom';
+import { Line, Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
   return (
@@ -36,13 +40,59 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Transaction Volume</h3>
-          {/* Placeholder for Line Chart */}
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400">Line Chart Placeholder</div>
+          {/* Line Chart */}
+          <div className="h-64">
+            <Line
+              data={{
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                  {
+                    label: 'Transaction Volume',
+                    data: [65, 59, 80, 81, 56, 55],
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+              }}
+            />
+          </div>
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Revenue Breakdown</h3>
-          {/* Placeholder for Pie Chart */}
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400">Pie Chart Placeholder</div>
+          {/* Pie Chart */}
+          <div className="h-64">
+            <Pie
+              data={{
+                labels: ['Card', 'Bank Transfer', 'E-Wallet'],
+                datasets: [
+                  {
+                    label: 'Revenue Breakdown',
+                    data: [300, 50, 100],
+                    backgroundColor: [
+                      'rgba(255, 99, 132, 0.6)',
+                      'rgba(54, 162, 235, 0.6)',
+                      'rgba(255, 206, 86, 0.6)',
+                    ],
+                    borderColor: [
+                      'rgba(255, 99, 132, 1)',
+                      'rgba(54, 162, 235, 1)',
+                      'rgba(255, 206, 86, 1)',
+                    ],
+                    borderWidth: 1,
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -50,9 +100,9 @@ const Dashboard = () => {
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
         <h3 className="text-lg font-semibold text-purple-700 dark:text-gray-300 mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-4">
-          <button className="bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Add Merchant</button>
-          <button className="bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Approve KYC</button>
-          <button className="bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">View Settlements</button>
+          <button className="!bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Add Merchant</button>
+          <button className="!bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Approve KYC</button>
+          <button className="!bg-purple-800 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">View Settlements</button>
         </div>
       </div>
 

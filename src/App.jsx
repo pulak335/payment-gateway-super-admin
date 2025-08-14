@@ -22,7 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/transactions" element={<TransactionManagement />} />
-          <Route path="/users" element={<UserManagement />} />
+          <Route path="/user-management" element={<UserManagement />} />
           <Route path="/payment-gateways" element={<PaymentGatewayIntegration />} />
           <Route path="/settlements" element={<FinancialSettlementManagement />} />
           <Route path="/kyc" element={<KYCCompliance />} />
@@ -31,7 +31,7 @@ function App() {
           <Route path="/settings-configuration" element={<SettingsAndConfiguration />} />
           <Route path="/api-key-management" element={<ApiKeyManagement />} />
           <Route path="/access-control" element={<AccessControl />} />
-          <Route path="/user-management/back-office-users" element={<BackOfficeUserManagement />} />
+          <Route path="/back-office-users" element={<BackOfficeUserManagement />} />
           <Route path="/merchants" element={<ViewAllMerchants />} />
         </Routes>
       </Layout>

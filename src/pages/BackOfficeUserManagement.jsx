@@ -7,7 +7,31 @@ const BackOfficeUserManagement = () => {
     { id: 1, name: 'Admin User 1', email: 'admin1@example.com', role: 'Super Admin', status: 'Active' },
     { id: 2, name: 'Support User 1', email: 'support1@example.com', role: 'Support', status: 'Active' },
     { id: 3, name: 'Finance User 1', email: 'finance1@example.com', role: 'Finance', status: 'Inactive' },
+    { id: 4, name: 'Admin User 2', email: 'admin2@example.com', role: 'Super Admin', status: 'Active' },
+    { id: 5, name: 'Support User 2', email: 'support2@example.com', role: 'Support', status: 'Active' },
+    { id: 6, name: 'Finance User 2', email: 'finance2@example.com', role: 'Finance', status: 'Inactive' },
+    { id: 7, name: 'Admin User 3', email: 'admin3@example.com', role: 'Super Admin', status: 'Active' },
+    { id: 8, name: 'Support User 3', email: 'support3@example.com', role: 'Support', status: 'Active' },
+    { id: 9, name: 'Finance User 3', email: 'finance3@example.com', role: 'Finance', status: 'Inactive' },
+    { id: 10, name: 'Admin User 4', email: 'admin4@example.com', role: 'Super Admin', status: 'Active' },
+    { id: 11, name: 'Support User 4', email: 'support4@example.com', role: 'Support', status: 'Active' },
+    { id: 12, name: 'Finance User 4', email: 'finance4@example.com', role: 'Finance', status: 'Inactive' },
   ]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(10);
+
+  // Get current users
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(users.length / usersPerPage); i++) {
+    pageNumbers.push(i);
+  };
   const [showModal, setShowModal] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -24,7 +48,7 @@ const BackOfficeUserManagement = () => {
 
   const handleDelete = (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user.id !== userId));
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
     }
   };
 
@@ -49,7 +73,7 @@ const BackOfficeUserManagement = () => {
       <div className="flex justify-end mb-4">
         <button
           onClick={handleAddUser}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md flex items-center"
+          className="!bg-purple-800 !hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-md flex items-center"
         >
           <FaPlus className="mr-2" /> Add New User
         </button>
@@ -67,7 +91,7 @@ const BackOfficeUserManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {currentUsers.map((user) => (
               <tr key={user.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{user.name}</td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{user.email}</td>
@@ -90,9 +114,33 @@ const BackOfficeUserManagement = () => {
         </table>
       </div>
 
-      {/* Pagination Placeholder */}
+      {/* Pagination Controls */}
       <div className="flex justify-center mt-4">
-        <p className="text-gray-600">Pagination will go here...</p>
+        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+          >
+            Previous
+          </button>
+          {pageNumbers.map(number => (
+            <button
+              key={number}
+              onClick={() => paginate(number)}
+              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 ${currentPage === number ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : ''}`}
+            >
+              {number}
+            </button>
+          ))}
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === Math.ceil(users.length / usersPerPage)}
+            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </nav>
       </div>
 
       {showModal && (

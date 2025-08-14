@@ -1,15 +1,57 @@
 import React, { useState } from 'react';
+import { FaCloudDownloadAlt } from 'react-icons/fa';
 
 const TransactionManagement = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
+  // Filter states
+  const [filterDateRange, setFilterDateRange] = useState('');
+  const [filterMerchant, setFilterMerchant] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterAmountRange, setFilterAmountRange] = useState('');
+
   const transactions = [
-    { id: 'TXN001', merchant: 'Merchant A', customer: 'John Doe', amount: 150.75, status: 'Completed', date: '2023-10-26', gateway: 'Stripe' },
+    { id: 'TXN001', merchant: 'Merchant A', customer: 'John Doe', amount: 150.75, status: 'Pending', date: '2023-10-26', gateway: 'Stripe' },
     { id: 'TXN002', merchant: 'Merchant B', customer: 'Jane Smith', amount: 200.00, status: 'Pending', date: '2023-10-25', gateway: 'PayPal' },
     { id: 'TXN003', merchant: 'Merchant A', customer: 'Peter Jones', amount: 50.20, status: 'Failed', date: '2023-10-24', gateway: 'Stripe' },
     { id: 'TXN004', merchant: 'Merchant C', customer: 'Alice Brown', amount: 300.50, status: 'Completed', date: '2023-10-23', gateway: 'Square' },
+    { id: 'TXN005', merchant: 'Merchant A', customer: 'Bob White', amount: 75.00, status: 'Completed', date: '2023-10-22', gateway: 'Stripe' },
+    { id: 'TXN006', merchant: 'Merchant B', customer: 'Charlie Green', amount: 120.00, status: 'Pending', date: '2023-10-21', gateway: 'PayPal' },
+    { id: 'TXN007', merchant: 'Merchant C', customer: 'Diana Prince', amount: 99.99, status: 'Completed', date: '2023-10-20', gateway: 'Square' },
+    { id: 'TXN008', merchant: 'Merchant A', customer: 'Eve Black', amount: 25.50, status: 'Failed', date: '2023-10-19', gateway: 'Stripe' },
+    { id: 'TXN009', merchant: 'Merchant B', customer: 'Frank Red', amount: 180.00, status: 'Completed', date: '2023-10-18', gateway: 'PayPal' },
+    { id: 'TXN010', merchant: 'Merchant C', customer: 'Grace Blue', amount: 60.00, status: 'Pending', date: '2023-10-17', gateway: 'Square' },
   ];
+
+  // Filter transactions based on filter states
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesDate = filterDateRange === '' || transaction.date.includes(filterDateRange);
+    const matchesMerchant = filterMerchant === '' || transaction.merchant.toLowerCase().includes(filterMerchant.toLowerCase());
+    const matchesStatus = filterStatus === '' || transaction.status.toLowerCase().includes(filterStatus.toLowerCase());
+    const matchesAmount = filterAmountRange === '' || (
+      parseFloat(transaction.amount) >= parseFloat(filterAmountRange.split('-')[0] || 0) &&
+      parseFloat(transaction.amount) <= parseFloat(filterAmountRange.split('-')[1] || Infinity)
+    );
+    return matchesDate && matchesMerchant && matchesStatus && matchesAmount;
+  });
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [transactionsPerPage] = useState(5);
+
+  // Get current transactions
+  const indexOfLastTransaction = currentPage * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(filteredTransactions.length / transactionsPerPage); i++) {
+    pageNumbers.push(i);
+  }
 
   const openDetailsModal = (transaction) => {
     setSelectedTransaction(transaction);
@@ -32,13 +74,22 @@ const TransactionManagement = () => {
   };
 
   const handleExportCSV = () => {
+    const headers = Object.keys(transactions[0]).join(',');
+    const csv = transactions.map(t => Object.values(t).join(',')).join('\n');
+    const fullCsv = headers + '\n' + csv;
+    const blob = new Blob([fullCsv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'transactions.csv');
+    a.click();
     alert('Exporting to CSV...');
-    // Implement CSV export logic here
   };
 
   const handleExportExcel = () => {
-    alert('Exporting to Excel...');
-    // Implement Excel export logic here
+    alert('Exporting data to Excel (placeholder)...');
+    // For actual Excel export, consider using a library like 'xlsx'
+    // Example: https://github.com/SheetJS/sheetjs
   };
 
   return (
@@ -49,14 +100,15 @@ const TransactionManagement = () => {
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Filters</h3>
         <div className="flex flex-wrap gap-4 mb-4">
-          <input type="text" placeholder="Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" />
-          <input type="text" placeholder="Merchant" className="p-2 border rounded dark:bg-gray-700 dark:text-white" />
-          <input type="text" placeholder="Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" />
-          <input type="text" placeholder="Amount Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" />
-        </div>
-        <div className="flex gap-4">
-          <button onClick={handleExportCSV} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Export CSV</button>
-          <button onClick={handleExportExcel} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Export Excel</button>
+          <input type="text" placeholder="Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterDateRange} onChange={(e) => setFilterDateRange(e.target.value)} />
+          <input type="text" placeholder="Merchant" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterMerchant} onChange={(e) => setFilterMerchant(e.target.value)} />
+          <input type="text" placeholder="Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} />
+          <input type="text" placeholder="Amount Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterAmountRange} onChange={(e) => setFilterAmountRange(e.target.value)} />
+          <div className="flex gap-4">
+            <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 !bg-green-600 !hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+              <FaCloudDownloadAlt /> <span>Export CSV</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -78,7 +130,7 @@ const TransactionManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.map(transaction => (
+              {currentTransactions.map(transaction => (
                 <tr key={transaction.id}>
                   <td className="py-2 px-4 border-b dark:text-gray-400">{transaction.id}</td>
                   <td className="py-2 px-4 border-b dark:text-gray-400">{transaction.merchant}</td>
@@ -87,7 +139,7 @@ const TransactionManagement = () => {
                   <td className="py-2 px-4 border-b dark:text-gray-400">{transaction.status}</td>
                   <td className="py-2 px-4 border-b dark:text-gray-400">{transaction.date}</td>
                   <td className="py-2 px-4 border-b dark:text-gray-400">{transaction.gateway}</td>
-                  <td className="py-2 px-4 border-b">
+                  <td className="py-2 px-4 border-b dark:text-gray-400">
                     <button onClick={() => openDetailsModal(transaction)} className="text-blue-500 hover:underline flex items-center gap-1">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -99,6 +151,34 @@ const TransactionManagement = () => {
               ))}
             </tbody>
           </table>
+        </div>
+                {/* Pagination Controls */}
+        <div className="flex justify-center mt-4">
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              Previous
+            </button>
+            {pageNumbers.map(number => (
+              <button
+                key={number}
+                onClick={() => paginate(number)}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600 ${currentPage === number ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600 dark:bg-indigo-900 dark:border-indigo-500 dark:text-indigo-300' : ''}`}
+              >
+                {number}
+              </button>
+            ))}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === pageNumbers.length}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              Next
+            </button>
+          </nav>
         </div>
       </div>
 
@@ -122,11 +202,11 @@ const TransactionManagement = () => {
             <div className="flex justify-end">
               {selectedTransaction.status === 'Pending' && (
                 <>
-                  <button onClick={handleApprove} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">Approve</button>
-                  <button onClick={handleReject} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2">Reject</button>
+                  <button onClick={handleApprove} className="!bg-green-600 !hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">Approve</button>
+                  <button onClick={handleReject} className="!bg-red-600 !hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2">Reject</button>
                 </>
               )}
-              <button onClick={closeDetailsModal} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Close</button>
+              <button onClick={closeDetailsModal} className="!bg-orange-500 !hover:bg-orange-700 text-white font-bold py-2 px-4 rounded">Close</button>
             </div>
           </div>
         </div>

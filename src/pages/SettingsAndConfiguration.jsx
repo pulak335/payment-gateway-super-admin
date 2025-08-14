@@ -5,6 +5,7 @@ const SettingsAndConfiguration = () => {
   const [contactEmail, setContactEmail] = useState('');
   const [supportPhone, setSupportPhone] = useState('');
   const [termsAndConditions, setTermsAndConditions] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [merchants, setMerchants] = useState([
     { id: 1, name: 'Merchant A', apiKey: 'sk_live_xxxxxxxxxxxxxx', status: 'active' },
     { id: 2, name: 'Merchant B', apiKey: 'sk_live_yyyyyyyyyyyyyy', status: 'inactive' },
@@ -41,6 +42,10 @@ const SettingsAndConfiguration = () => {
       merchant.id === id ? { ...merchant, status: merchant.status === 'active' ? 'inactive' : 'active' } : merchant
     ));
   };
+
+  const filteredMerchants = merchants.filter(merchant =>
+    merchant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="p-4">
@@ -105,6 +110,15 @@ const SettingsAndConfiguration = () => {
       {/* API Key Management */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">API Key Management</h3>
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search merchants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden">
             <thead className="bg-gray-200 dark:bg-gray-600">
@@ -116,7 +130,7 @@ const SettingsAndConfiguration = () => {
               </tr>
             </thead>
             <tbody>
-              {merchants.map((merchant) => (
+              {filteredMerchants.map((merchant) => (
                 <tr key={merchant.id} className="border-b border-gray-200 dark:border-gray-600 last:border-b-0">
                   <td className="py-2 px-4 text-gray-800 dark:text-gray-200">{merchant.name}</td>
                   <td className="py-2 px-4 text-gray-800 dark:text-gray-200 font-mono text-sm">{merchant.apiKey}</td>
@@ -128,13 +142,13 @@ const SettingsAndConfiguration = () => {
                   <td className="py-2 px-4">
                     <button
                       onClick={() => handleRegenerateKey(merchant.id)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mr-2"
+                      className="!bg-blue-500 !hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm mr-2"
                     >
                       Regenerate
                     </button>
                     <button
                       onClick={() => handleToggleKeyStatus(merchant.id)}
-                      className={`${merchant.status === 'active' ? 'bg-red-500 hover:bg-red-700' : 'bg-green-500 hover:bg-green-700'} text-white font-bold py-1 px-2 rounded text-sm`}
+                      className={`${merchant.status === 'active' ? '!bg-red-500 !hover:bg-red-700' : '!bg-green-500 !hover:bg-green-700'} text-white font-bold py-1 px-2 rounded text-sm`}
                     >
                       {merchant.status === 'active' ? 'Disable' : 'Enable'}
                     </button>

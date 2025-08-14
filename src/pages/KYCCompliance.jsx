@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import { MdFileDownload } from "react-icons/md";
 
 const KYCCompliance = () => {
   const [kycRequests, setKycRequests] = useState([
@@ -41,6 +43,7 @@ const KYCCompliance = () => {
   const [currentDocument, setCurrentDocument] = useState('');
   const [showFlagModal, setShowFlagModal] = useState(false);
   const [flagReason, setFlagReason] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleApproveReject = (request, action) => {
     setSelectedRequest({ ...request, action });
@@ -92,6 +95,22 @@ const KYCCompliance = () => {
     }
   };
 
+  const filteredKycRequests = kycRequests.filter(request =>
+    request.merchantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    request.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleDownloadKycPdf = (request) => {
+    const doc = new jsPDF();
+    doc.text(`KYC Request Summary for ${request.merchantName}`, 10, 10);
+    doc.text(`Submission Date: ${request.submissionDate}`, 10, 20);
+    doc.text(`Status: ${request.status}`, 10, 30);
+    doc.text(`Documents:`, 10, 40);
+    doc.text(`  ID: ${request.documents.id}`, 10, 50);
+    doc.text(`  Business License: ${request.documents.businessLicense}`, 10, 60);
+    doc.save(`kyc_summary_${request.merchantName}.pdf`);
+  };
+
   const cancelFlag = () => {
     setShowFlagModal(false);
     setSelectedRequest(null);
@@ -105,6 +124,19 @@ const KYCCompliance = () => {
       {/* KYC Requests Table */}
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">KYC Requests</h2>
+        <div className="mb-4">
+          <label htmlFor="kycSearch" className="block text-gray-700 text-sm font-bold mb-2">
+            Search KYC Requests:
+          </label>
+          <input
+            type="text"
+            id="kycSearch"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Search by Merchant Name or Status"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full leading-normal">
             <thead>
@@ -124,7 +156,7 @@ const KYCCompliance = () => {
               </tr>
             </thead>
             <tbody>
-              {kycRequests.map((request) => (
+              {filteredKycRequests.map((request) => (
                 <tr key={request.id}>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     <p className="text-gray-900 whitespace-no-wrap">{request.merchantName}</p>
@@ -157,13 +189,13 @@ const KYCCompliance = () => {
                         <>
                           <button
                             onClick={() => handleApproveReject(request, 'approve')}
-                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                            className="!bg-green-500 !hover:bg-green-600 text-white font-bold py-1 px-3 rounded-md text-xs"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => handleApproveReject(request, 'reject')}
-                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                            className="!bg-red-500 !hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md text-xs"
                           >
                             Reject
                           </button>
@@ -171,21 +203,27 @@ const KYCCompliance = () => {
                       )}
                       <button
                         onClick={() => viewDocument(request.documents.id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                        className="!bg-blue-500 !hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-xs"
                       >
                         View ID
                       </button>
                       <button
                         onClick={() => viewDocument(request.documents.businessLicense)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                        className="!bg-blue-500 !hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-xs"
                       >
                         View License
                       </button>
                       <button
                         onClick={() => handleFlagMerchant(request)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                        className="!bg-yellow-500 !hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md text-xs"
                       >
                         Flag
+                      </button>
+                      <button
+                        onClick={() => handleDownloadKycPdf(request)}
+                        className="!bg-purple-500 !hover:bg-purple-600 text-white font-bold py-1 px-3 rounded-md text-xs"
+                      >
+                        <MdFileDownload/>
                       </button>
                     </div>
                   </td>

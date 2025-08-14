@@ -154,12 +154,15 @@ const PaymentGatewayIntegration = () => {
               <p className="text-gray-600">Fee: {gateway.fee}%</p>
               <p className="text-gray-600">Limit: ${gateway.limit.toLocaleString()}</p>
               <div className="mt-4">
-                <button
+                
+                   <button
                   onClick={() => handleEditGateway(gateway)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md text-sm"
+                  className="!bg-blue-500 !hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md text-sm"
                 >
-                  Configure
+                  configure
                 </button>
+                
+                
               </div>
             </div>
           ))}
@@ -222,7 +225,7 @@ const PaymentGatewayIntegration = () => {
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline"
+                className="!bg-green-500 !hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline"
               >
                 Save Configuration
               </button>

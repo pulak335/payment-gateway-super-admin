@@ -120,14 +120,14 @@ const Notification = () => {
         </div>
         <button
           onClick={handleSendAnnouncement}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 !bg-blue-600 text-white rounded-md !hover:bg-blue-700 !focus:outline-none !focus:ring-2 !focus:ring-blue-500 1focus:ring-offset-2"
         >
           Send Announcement
         </button>
       </div>
 
       {/* Notifications Panel */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      {/* <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Notifications Panel</h2>
         <div className="relative inline-block text-left mb-4">
           <button
@@ -201,7 +201,7 @@ const Notification = () => {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
