@@ -1,46 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setBrandingLogo, setContactEmail, setSupportPhone, setTermsAndConditions, setSearchQuerySettings, setTwoFactorAuthEnabled, setIpWhitelist, setNewIp, addIpToWhitelist, removeIpFromWhitelist, regenerateApiKeySettings, toggleApiKeyStatusSettings } from '../features/settings/settingsSlice';
 
 const SettingsAndConfiguration = () => {
-  const [brandingLogo, setBrandingLogo] = useState(null);
-  const [contactEmail, setContactEmail] = useState('');
-  const [supportPhone, setSupportPhone] = useState('');
-  const [termsAndConditions, setTermsAndConditions] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [merchants, setMerchants] = useState([
-    { id: 1, name: 'Merchant A', apiKey: 'sk_live_xxxxxxxxxxxxxx', status: 'active' },
-    { id: 2, name: 'Merchant B', apiKey: 'sk_live_yyyyyyyyyyyyyy', status: 'inactive' },
-  ]);
-  const [twoFactorAuthEnabled, setTwoFactorAuthEnabled] = useState(false);
-  const [ipWhitelist, setIpWhitelist] = useState(['192.168.1.1', '10.0.0.5']);
-  const [newIp, setNewIp] = useState('');
+  const dispatch = useDispatch();
+  const { brandingLogo, contactEmail, supportPhone, termsAndConditions, searchQuery, merchants, twoFactorAuthEnabled, ipWhitelist, newIp } = useSelector((state) => state.settings);
 
-  const handleLogoUpload = (event) => {
-    if (event.target.files && event.target.files[0]) {
-      setBrandingLogo(URL.createObjectURL(event.target.files[0]));
+  useEffect(() => {
+    // This useEffect can be used for initial data loading or other side effects if needed
+  }, []);
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      dispatch(setBrandingLogo(URL.createObjectURL(file)));
     }
   };
 
   const handleAddIp = () => {
-    if (newIp && !ipWhitelist.includes(newIp)) {
-      setIpWhitelist([...ipWhitelist, newIp]);
-      setNewIp('');
-    }
+    dispatch(addIpToWhitelist());
   };
 
   const handleRemoveIp = (ipToRemove) => {
-    setIpWhitelist(ipWhitelist.filter(ip => ip !== ipToRemove));
+    dispatch(removeIpFromWhitelist(ipToRemove));
   };
 
   const handleRegenerateKey = (id) => {
-    setMerchants(merchants.map(merchant =>
-      merchant.id === id ? { ...merchant, apiKey: `sk_live_${Math.random().toString(36).substring(2, 15)}` } : merchant
-    ));
+    dispatch(regenerateApiKeySettings({ id }));
   };
 
-  const handleToggleKeyStatus = (id) => {
-    setMerchants(merchants.map(merchant =>
-      merchant.id === id ? { ...merchant, status: merchant.status === 'active' ? 'inactive' : 'active' } : merchant
-    ));
+  const handleToggleStatus = (id) => {
+    dispatch(toggleApiKeyStatusSettings({ id }));
   };
 
   const filteredMerchants = merchants.filter(merchant =>
@@ -73,11 +63,9 @@ const SettingsAndConfiguration = () => {
           </label>
           <input
             type="email"
-            id="contactEmail"
-            value={contactEmail}
-            onChange={(e) => setContactEmail(e.target.value)}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="support@example.com"
+            value={contactEmail}
+            onChange={(e) => dispatch(setContactEmail(e.target.value))}
           />
         </div>
         <div className="mb-4">
@@ -86,11 +74,9 @@ const SettingsAndConfiguration = () => {
           </label>
           <input
             type="tel"
-            id="supportPhone"
-            value={supportPhone}
-            onChange={(e) => setSupportPhone(e.target.value)}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="+1-XXX-XXX-XXXX"
+            value={supportPhone}
+            onChange={(e) => dispatch(setSupportPhone(e.target.value))}
           />
         </div>
         <div className="mb-4">
@@ -98,24 +84,22 @@ const SettingsAndConfiguration = () => {
             Terms & Conditions Editor
           </label>
           <textarea
-            id="termsAndConditions"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline h-32"
             value={termsAndConditions}
-            onChange={(e) => setTermsAndConditions(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline h-48"
-            placeholder="Enter your terms and conditions here..."
+            onChange={(e) => dispatch(setTermsAndConditions(e.target.value))}
           ></textarea>
         </div>
       </div>
 
       {/* API Key Management */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+      {/* <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">API Key Management</h3>
         <div className="mb-4">
           <input
             type="text"
             placeholder="Search merchants..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => dispatch(setSearchQuerySettings(e.target.value))}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
           />
         </div>
@@ -158,7 +142,7 @@ const SettingsAndConfiguration = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
 
       {/* Security Settings */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
@@ -166,13 +150,12 @@ const SettingsAndConfiguration = () => {
         <div className="flex items-center justify-between mb-4">
           <label htmlFor="twoFactorAuth" className="text-gray-700 dark:text-gray-300 font-bold mr-2">2FA (Two-Factor Authentication)</label>
           <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              id="twoFactorAuth"
-              className="sr-only peer"
-              checked={twoFactorAuthEnabled}
-              onChange={() => setTwoFactorAuthEnabled(!twoFactorAuthEnabled)}
-            />
+          <input
+            type="checkbox"
+            checked={twoFactorAuthEnabled}
+            onChange={(e) => dispatch(setTwoFactorAuthEnabled(e.target.checked))}
+            className="mr-2 leading-tight"
+          />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
           </label>
         </div>
@@ -180,13 +163,13 @@ const SettingsAndConfiguration = () => {
         <div className="mb-4">
           <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">IP Whitelist</label>
           <div className="flex mb-2">
-            <input
-              type="text"
-              value={newIp}
-              onChange={(e) => setNewIp(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline mr-2"
-              placeholder="Add new IP address"
-            />
+          <input
+            type="text"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter new IP address"
+            value={newIp}
+            onChange={(e) => dispatch(setNewIp(e.target.value))}
+          />
             <button
               onClick={handleAddIp}
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"

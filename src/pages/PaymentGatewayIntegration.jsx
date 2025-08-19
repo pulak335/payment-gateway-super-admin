@@ -1,120 +1,135 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setGateways,
+  setSelectedGateway,
+  setApiLogs,
+  toggleGatewayStatus,
+  updateGateway,
+} from '../features/paymentGatewayIntegration/paymentGatewayIntegrationSlice';
 
 const PaymentGatewayIntegration = () => {
-  const [gateways, setGateways] = useState([
-    {
-      id: 1,
-      name: 'Stripe',
-      status: true,
-      fee: 2.9,
-      limit: 100000,
-      apiKey: 'sk_test_stripe_123',
-      secretKey: 'sec_test_stripe_abc',
-    },
-    {
-      id: 2,
-      name: 'PayPal',
-      status: false,
-      fee: 3.5,
-      limit: 50000,
-      apiKey: 'sb-paypal_test_456',
-      secretKey: 'sec_paypal_test_def',
-    },
-    {
-      id: 3,
-      name: 'Square',
-      status: true,
-      fee: 2.6,
-      limit: 75000,
-      apiKey: 'sq0cs_test_789',
-      secretKey: 'sec_square_test_ghi',
-    },
-    {
-      id: 4,
-      name: 'Bkash',
-      status: true,
-      fee: 2.6,
-      limit: 75000,
-      apiKey: 'sq0cs_test_789',
-      secretKey: 'sec_square_test_ghi',
-    },
-    {
-      id: 5,
-      name: 'Nagad',
-      status: true,
-      fee: 2.6,
-      limit: 75000,
-      apiKey: 'sq0cs_test_789',
-      secretKey: 'sec_square_test_ghi',
-    },
-    {
-      id: 6,
-      name: 'Visa',
-      status: true,
-      fee: 2.6,
-      limit: 75000,
-      apiKey: 'sq0cs_test_789',
-      secretKey: 'sec_square_test_ghi',
-    }
-  ]);
+  const dispatch = useDispatch();
+  const { gateways, selectedGateway, apiLogs } = useSelector(
+    (state) => state.paymentGatewayIntegration
+  );
 
-  const [selectedGateway, setSelectedGateway] = useState(null);
-  const [apiLogs, setApiLogs] = useState([
-    {
-      id: 1,
-      date: '2023-10-26 10:00:00',
-      endpoint: '/api/payments/charge',
-      merchant: 'Merchant A',
-      status: 'Success',
-      responseTime: '150ms',
-    },
-    {
-      id: 2,
-      date: '2023-10-26 10:05:00',
-      endpoint: '/api/refunds',
-      merchant: 'Merchant B',
-      status: 'Failed',
-      responseTime: '200ms',
-    },
-    {
-      id: 3,
-      date: '2023-10-26 10:10:00',
-      endpoint: '/api/webhooks',
-      merchant: 'Merchant C',
-      status: 'Success',
-      responseTime: '100ms',
-    },
-    {
-      id: 4,
-      date: '2023-10-26 10:10:00',
-      endpoint: '/api/webhooks',
-      merchant: 'Merchant C',
-      status: 'Success',
-      responseTime: '100ms',
-    },
-    {
-      id: 5,
-      date: '2023-10-26 10:10:00',
-      endpoint: '/api/webhooks',
-      merchant: 'Merchant C',
-      status: 'Failed',
-      responseTime: '100ms',
-    },
-  ]);
+  useEffect(() => {
+    // Dispatch initial data if needed, or fetch from an API
+    dispatch(setGateways([
+      {
+        id: 1,
+        name: 'Stripe',
+        status: true,
+        fee: 2.9,
+        limit: 100000,
+        apiKey: 'sk_test_stripe_123',
+        secretKey: 'sec_test_stripe_abc',
+      },
+      {
+        id: 2,
+        name: 'PayPal',
+        status: false,
+        fee: 3.5,
+        limit: 50000,
+        apiKey: 'sb-paypal_test_456',
+        secretKey: 'sec_paypal_test_def',
+      },
+      {
+        id: 3,
+        name: 'Square',
+        status: true,
+        fee: 2.6,
+        limit: 75000,
+        apiKey: 'sq0cs_test_789',
+        secretKey: 'sec_square_test_ghi',
+      },
+      {
+        id: 4,
+        name: 'Bkash',
+        status: true,
+        fee: 2.6,
+        limit: 75000,
+        apiKey: 'sq0cs_test_789',
+        secretKey: 'sec_square_test_ghi',
+      },
+      {
+        id: 5,
+        name: 'Nagad',
+        status: true,
+        fee: 2.6,
+        limit: 75000,
+        apiKey: 'sq0cs_test_789',
+        secretKey: 'sec_square_test_ghi',
+      },
+      {
+        id: 6,
+        name: 'Visa',
+        status: true,
+        fee: 2.6,
+        limit: 75000,
+        apiKey: 'sq0cs_test_789',
+        secretKey: 'sec_square_test_ghi',
+      }
+    ]));
+    dispatch(setApiLogs([
+      {
+        id: 1,
+        date: '2023-10-26 10:00:00',
+        endpoint: '/api/payments/charge',
+        merchant: 'Merchant A',
+        status: 'Success',
+        responseTime: '150ms',
+      },
+      {
+        id: 2,
+        date: '2023-10-26 10:05:00',
+        endpoint: '/api/refunds',
+        merchant: 'Merchant B',
+        status: 'Failed',
+        responseTime: '200ms',
+      },
+      {
+        id: 3,
+        date: '2023-10-26 10:10:00',
+        endpoint: '/api/webhooks',
+        merchant: 'Merchant C',
+        status: 'Success',
+        responseTime: '100ms',
+      },
+      {
+        id: 4,
+        date: '2023-10-26 10:10:00',
+        endpoint: '/api/webhooks',
+        merchant: 'Merchant C',
+        status: 'Success',
+        responseTime: '100ms',
+      },
+      {
+        id: 5,
+        date: '2023-10-26 10:10:00',
+        endpoint: '/api/webhooks',
+        merchant: 'Merchant C',
+        status: 'Failed',
+        responseTime: '100ms',
+      },
+    ]));
+  }, [dispatch]);
 
   const handleToggleStatus = (id) => {
-    setGateways(gateways.map((g) => (g.id === id ? { ...g, status: !g.status } : g)));
+    dispatch(toggleGatewayStatus(id));
   };
 
   const handleEditGateway = (gateway) => {
-    setSelectedGateway(gateway);
+    dispatch(setSelectedGateway(gateway));
   };
 
   const handleSaveConfiguration = (e) => {
     e.preventDefault();
     // Logic to save configuration
     console.log('Saving configuration for:', selectedGateway);
-    setSelectedGateway(null); // Close form after saving
+    dispatch(updateGateway(selectedGateway));
+    dispatch(setSelectedGateway(null)); // Close form after saving
   };
 
   return (
@@ -183,7 +198,7 @@ const PaymentGatewayIntegration = () => {
                 id="apiKey"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 value={selectedGateway.apiKey}
-                onChange={(e) => setSelectedGateway({ ...selectedGateway, apiKey: e.target.value })}
+                onChange={(e) => dispatch(setSelectedGateway({ ...selectedGateway, apiKey: e.target.value }))}
               />
             </div>
             <div className="mb-4">
@@ -195,7 +210,7 @@ const PaymentGatewayIntegration = () => {
                 id="secretKey"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 value={selectedGateway.secretKey}
-                onChange={(e) => setSelectedGateway({ ...selectedGateway, secretKey: e.target.value })}
+                onChange={(e) => dispatch(setSelectedGateway({ ...selectedGateway, secretKey: e.target.value }))}
               />
             </div>
             <div className="mb-4">
@@ -207,10 +222,10 @@ const PaymentGatewayIntegration = () => {
                 id="fee"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 value={selectedGateway.fee}
-                onChange={(e) => setSelectedGateway({ ...selectedGateway, fee: parseFloat(e.target.value) })}
+                onChange={(e) => dispatch(setSelectedGateway({ ...selectedGateway, fee: parseFloat(e.target.value) }))}
               />
             </div>
-            <div className="mb-6">
+            <div className="mb-4">
               <label htmlFor="limit" className="block text-gray-700 text-sm font-bold mb-2">
                 Limit:
               </label>
@@ -219,20 +234,20 @@ const PaymentGatewayIntegration = () => {
                 id="limit"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 value={selectedGateway.limit}
-                onChange={(e) => setSelectedGateway({ ...selectedGateway, limit: parseFloat(e.target.value) })}
+                onChange={(e) => dispatch(setSelectedGateway({ ...selectedGateway, limit: parseFloat(e.target.value) }))}
               />
             </div>
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="!bg-green-500 !hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline"
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
                 Save Configuration
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedGateway(null)}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline"
+                onClick={() => dispatch(setSelectedGateway(null))}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
                 Cancel
               </button>
@@ -241,7 +256,7 @@ const PaymentGatewayIntegration = () => {
         </div>
       )}
 
-      {/* API Logs Table */}
+      {/* API Logs */}
       <div className="bg-white shadow-md rounded-lg p-6">
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">API Logs</h2>
         <div className="overflow-x-auto">

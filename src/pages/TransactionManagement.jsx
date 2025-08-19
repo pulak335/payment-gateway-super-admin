@@ -1,28 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setShowDetailsModal,
+  setSelectedTransaction,
+  setFilterDateRange,
+  setFilterMerchant,
+  setFilterStatus,
+  setFilterAmountRange,
+  setCurrentPage,
+} from '../features/transactionManagement/transactionManagementSlice';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
 
 const TransactionManagement = () => {
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const dispatch = useDispatch();
+  const {
+    transactions,
+    showDetailsModal,
+    selectedTransaction,
+    filterDateRange,
+    filterMerchant,
+    filterStatus,
+    filterAmountRange,
+    currentPage,
+    transactionsPerPage,
+  } = useSelector((state) => state.transactionManagement);
 
-  // Filter states
-  const [filterDateRange, setFilterDateRange] = useState('');
-  const [filterMerchant, setFilterMerchant] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterAmountRange, setFilterAmountRange] = useState('');
 
-  const transactions = [
-    { id: 'TXN001', merchant: 'Merchant A', customer: 'John Doe', amount: 150.75, status: 'Pending', date: '2023-10-26', gateway: 'Stripe' },
-    { id: 'TXN002', merchant: 'Merchant B', customer: 'Jane Smith', amount: 200.00, status: 'Pending', date: '2023-10-25', gateway: 'PayPal' },
-    { id: 'TXN003', merchant: 'Merchant A', customer: 'Peter Jones', amount: 50.20, status: 'Failed', date: '2023-10-24', gateway: 'Stripe' },
-    { id: 'TXN004', merchant: 'Merchant C', customer: 'Alice Brown', amount: 300.50, status: 'Completed', date: '2023-10-23', gateway: 'Square' },
-    { id: 'TXN005', merchant: 'Merchant A', customer: 'Bob White', amount: 75.00, status: 'Completed', date: '2023-10-22', gateway: 'Stripe' },
-    { id: 'TXN006', merchant: 'Merchant B', customer: 'Charlie Green', amount: 120.00, status: 'Pending', date: '2023-10-21', gateway: 'PayPal' },
-    { id: 'TXN007', merchant: 'Merchant C', customer: 'Diana Prince', amount: 99.99, status: 'Completed', date: '2023-10-20', gateway: 'Square' },
-    { id: 'TXN008', merchant: 'Merchant A', customer: 'Eve Black', amount: 25.50, status: 'Failed', date: '2023-10-19', gateway: 'Stripe' },
-    { id: 'TXN009', merchant: 'Merchant B', customer: 'Frank Red', amount: 180.00, status: 'Completed', date: '2023-10-18', gateway: 'PayPal' },
-    { id: 'TXN010', merchant: 'Merchant C', customer: 'Grace Blue', amount: 60.00, status: 'Pending', date: '2023-10-17', gateway: 'Square' },
-  ];
 
   // Filter transactions based on filter states
   const filteredTransactions = transactions.filter(transaction => {
@@ -36,9 +39,7 @@ const TransactionManagement = () => {
     return matchesDate && matchesMerchant && matchesStatus && matchesAmount;
   });
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [transactionsPerPage] = useState(5);
+
 
   // Get current transactions
   const indexOfLastTransaction = currentPage * transactionsPerPage;
@@ -46,7 +47,7 @@ const TransactionManagement = () => {
   const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
 
   // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => dispatch(setCurrentPage(pageNumber));
 
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(filteredTransactions.length / transactionsPerPage); i++) {
@@ -54,13 +55,13 @@ const TransactionManagement = () => {
   }
 
   const openDetailsModal = (transaction) => {
-    setSelectedTransaction(transaction);
-    setShowDetailsModal(true);
+    dispatch(setSelectedTransaction(transaction));
+    dispatch(setShowDetailsModal(true));
   };
 
   const closeDetailsModal = () => {
-    setShowDetailsModal(false);
-    setSelectedTransaction(null);
+    dispatch(setShowDetailsModal(false));
+    dispatch(setSelectedTransaction(null));
   };
 
   const handleApprove = () => {
@@ -100,10 +101,10 @@ const TransactionManagement = () => {
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Filters</h3>
         <div className="flex flex-wrap gap-4 mb-4">
-          <input type="text" placeholder="Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterDateRange} onChange={(e) => setFilterDateRange(e.target.value)} />
-          <input type="text" placeholder="Merchant" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterMerchant} onChange={(e) => setFilterMerchant(e.target.value)} />
-          <input type="text" placeholder="Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} />
-          <input type="text" placeholder="Amount Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterAmountRange} onChange={(e) => setFilterAmountRange(e.target.value)} />
+          <input type="text" placeholder="Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterDateRange} onChange={(e) => dispatch(setFilterDateRange(e.target.value))} />
+          <input type="text" placeholder="Merchant" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterMerchant} onChange={(e) => dispatch(setFilterMerchant(e.target.value))} />
+          <input type="text" placeholder="Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterStatus} onChange={(e) => dispatch(setFilterStatus(e.target.value))} />
+          <input type="text" placeholder="Amount Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterAmountRange} onChange={(e) => dispatch(setFilterAmountRange(e.target.value))} />
           <div className="flex gap-4">
             <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 !bg-green-600 !hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
               <FaCloudDownloadAlt /> <span>Export CSV</span>

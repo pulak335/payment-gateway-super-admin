@@ -1,24 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { FaEdit, FaToggleOn, FaToggleOff, FaTrash, FaPlus } from 'react-icons/fa';
+import {
+  setUsers,
+  setCurrentPage,
+  setUsersPerPage,
+  setShowModal,
+  setCurrentUser,
+  setFormData,
+  setErrors,
+  resetFormData,
+  addUser,
+  updateUser,
+  deleteUser,
+} from '../features/backOfficeUserManagement/backOfficeUserManagementSlice';
 
 const BackOfficeUserManagement = () => {
-  const [users, setUsers] = useState([
-    // Sample data
-    { id: 1, name: 'Admin User 1', email: 'admin1@example.com', role: 'Super Admin', status: 'Active' },
-    { id: 2, name: 'Support User 1', email: 'support1@example.com', role: 'Support', status: 'Active' },
-    { id: 3, name: 'Finance User 1', email: 'finance1@example.com', role: 'Finance', status: 'Inactive' },
-    { id: 4, name: 'Admin User 2', email: 'admin2@example.com', role: 'Super Admin', status: 'Active' },
-    { id: 5, name: 'Support User 2', email: 'support2@example.com', role: 'Support', status: 'Active' },
-    { id: 6, name: 'Finance User 2', email: 'finance2@example.com', role: 'Finance', status: 'Inactive' },
-    { id: 7, name: 'Admin User 3', email: 'admin3@example.com', role: 'Super Admin', status: 'Active' },
-    { id: 8, name: 'Support User 3', email: 'support3@example.com', role: 'Support', status: 'Active' },
-    { id: 9, name: 'Finance User 3', email: 'finance3@example.com', role: 'Finance', status: 'Inactive' },
-    { id: 10, name: 'Admin User 4', email: 'admin4@example.com', role: 'Super Admin', status: 'Active' },
-    { id: 11, name: 'Support User 4', email: 'support4@example.com', role: 'Support', status: 'Active' },
-    { id: 12, name: 'Finance User 4', email: 'finance4@example.com', role: 'Finance', status: 'Inactive' },
-  ]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(10);
+  const dispatch = useDispatch();
+  const { users, currentPage, usersPerPage, showModal, currentUser, formData, errors } = useSelector(
+    (state) => state.backOfficeUserManagement
+  );
+
+  useEffect(() => {
+    // Initial sample data load, replace with API call in a real application
+    dispatch(setUsers([
+      { id: 1, name: 'Admin User 1', email: 'admin1@example.com', role: 'Super Admin', status: 'Active' },
+      { id: 2, name: 'Support User 1', email: 'support1@example.com', role: 'Support', status: 'Active' },
+      { id: 3, name: 'Finance User 1', email: 'finance1@example.com', role: 'Finance', status: 'Inactive' },
+      { id: 4, name: 'Admin User 2', email: 'admin2@example.com', role: 'Super Admin', status: 'Active' },
+      { id: 5, name: 'Support User 2', email: 'support2@example.com', role: 'Support', status: 'Active' },
+      { id: 6, name: 'Finance User 2', email: 'finance2@example.com', role: 'Finance', status: 'Inactive' },
+      { id: 7, name: 'Admin User 3', email: 'admin3@example.com', role: 'Super Admin', status: 'Active' },
+      { id: 8, name: 'Support User 3', email: 'support3@example.com', role: 'Support', status: 'Active' },
+      { id: 9, name: 'Finance User 3', email: 'finance3@example.com', role: 'Finance', status: 'Inactive' },
+      { id: 10, name: 'Admin User 4', email: 'admin4@example.com', role: 'Super Admin', status: 'Active' },
+      { id: 11, name: 'Support User 4', email: 'support4@example.com', role: 'Support', status: 'Active' },
+      { id: 12, name: 'Finance User 4', email: 'finance4@example.com', role: 'Finance', status: 'Inactive' },
+    ]));
+  }, [dispatch]);
 
   // Get current users
   const indexOfLastUser = currentPage * usersPerPage;
@@ -26,44 +45,46 @@ const BackOfficeUserManagement = () => {
   const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
 
   // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => dispatch(setCurrentPage(pageNumber));
 
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(users.length / usersPerPage); i++) {
     pageNumbers.push(i);
-  };
-  const [showModal, setShowModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  }
 
   const handleEdit = (user) => {
-    setCurrentUser(user);
-    setShowModal(true);
+    dispatch(setCurrentUser(user));
+    dispatch(setShowModal(true));
+    dispatch(setFormData(user));
   };
 
   const handleToggleStatus = (userId) => {
-    setUsers(users.map(user =>
+    const updatedUsers = users.map(user =>
       user.id === userId ? { ...user, status: user.status === 'Active' ? 'Inactive' : 'Active' } : user
-    ));
+    );
+    dispatch(setUsers(updatedUsers));
   };
 
   const handleDelete = (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      dispatch(deleteUser(userId));
     }
   };
 
   const handleAddUser = () => {
-    setCurrentUser(null);
-    setShowModal(true);
+    dispatch(setCurrentUser(null));
+    dispatch(resetFormData());
+    dispatch(setErrors({}));
+    dispatch(setShowModal(true));
   };
 
   const handleSaveUser = (userData) => {
     if (userData.id) {
-      setUsers(users.map(user => user.id === userData.id ? userData : user));
+      dispatch(updateUser(userData));
     } else {
-      setUsers([...users, { ...userData, id: users.length + 1 }]);
+      dispatch(addUser({ ...userData, id: users.length + 1 }));
     }
-    setShowModal(false);
+    dispatch(setShowModal(false));
   };
 
   return (
@@ -147,7 +168,7 @@ const BackOfficeUserManagement = () => {
         <UserModal
           user={currentUser}
           onSave={handleSaveUser}
-          onClose={() => setShowModal(false)}
+          onClose={() => dispatch(setShowModal(false))}
         />
       )}
     </div>
@@ -155,12 +176,17 @@ const BackOfficeUserManagement = () => {
 };
 
 const UserModal = ({ user, onSave, onClose }) => {
-  const [formData, setFormData] = useState(user || { name: '', email: '', role: '', password: '' });
-  const [errors, setErrors] = useState({});
+  const dispatch = useDispatch();
+  const { formData, errors } = useSelector((state) => state.backOfficeUserManagement);
+
+  useEffect(() => {
+    dispatch(setFormData(user || { name: '', email: '', role: '', password: '' }));
+    dispatch(setErrors({}));
+  }, [user, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    dispatch(setFormData({ [name]: value }));
   };
 
   const validate = () => {
@@ -173,7 +199,7 @@ const UserModal = ({ user, onSave, onClose }) => {
     }
     if (!formData.role) newErrors.role = 'Role is required';
     if (!user && !formData.password) newErrors.password = 'Password is required for new users';
-    setErrors(newErrors);
+    dispatch(setErrors(newErrors));
     return Object.keys(newErrors).length === 0;
   };
 
@@ -222,11 +248,10 @@ const UserModal = ({ user, onSave, onClose }) => {
               onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             >
-              <option value="">Select a role</option>
+              <option value="">Select Role</option>
               <option value="Super Admin">Super Admin</option>
               <option value="Support">Support</option>
               <option value="Finance">Finance</option>
-              {/* Roles from your role permissions table */}
             </select>
             {errors.role && <p className="text-red-500 text-xs italic">{errors.role}</p>}
           </div>
@@ -244,7 +269,7 @@ const UserModal = ({ user, onSave, onClose }) => {
               {errors.password && <p className="text-red-500 text-xs italic">{errors.password}</p>}
             </div>
           )}
-          <div className="md:col-span-2 flex justify-end mt-6">
+          <div className="md:col-span-2 flex justify-end mt-4">
             <button
               type="button"
               onClick={onClose}
@@ -254,17 +279,12 @@ const UserModal = ({ user, onSave, onClose }) => {
             </button>
             <button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md"
+              className="!bg-purple-800 !hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-md"
             >
               Save User
             </button>
           </div>
         </form>
-        {/* Role Permission Assignment UI Placeholder */}
-        <div className="mt-6 p-4 border rounded-md bg-gray-50">
-          <h3 className="text-lg font-semibold mb-2">Role Permission Assignment</h3>
-          <p className="text-gray-600">UI for assigning permissions will go here, styled like your screenshot with tooltips and sticky header.</p>
-        </div>
       </div>
     </div>
   );

@@ -1,88 +1,37 @@
-import React, { useState,useEffect } from 'react';
-import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import jsonToCsvExport from 'json-to-csv-export';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setDateRange, setMerchant, setPaymentGateway, applyFilters, fetchReportsData } from '../features/reportsAnalytics/reportsAnalyticsSlice';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { FaFilter, FaDownload } from 'react-icons/fa';
+import { MdOutlineDateRange } from 'react-icons/md';
+import '../index.css';
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28DFF', '#FF6F61', '#6B5B95', '#88B04B'];
+
+const ReportsAnalytic = () => {
+  const dispatch = useDispatch();
+  const { dateRange, merchant, paymentGateway, filteredData, filteredPieData, lineChartData, status, error } = useSelector((state) => state.reportsAnalytics);
 
 
-const initialData = [
-  { name: 'Jan', transactions: 4000, revenue: 2400, amt: 2400, merchant: 'Merchant A', gateway: 'Gateway A', date: '2023-01-01' },
-  { name: 'Feb', transactions: 3000, revenue: 1398, amt: 2210, merchant: 'Merchant B', gateway: 'Gateway B', date: '2023-02-01' },
-  { name: 'Mar', transactions: 2000, revenue: 9800, amt: 2290, merchant: 'Merchant C', gateway: 'Gateway C', date: '2023-03-01' },
-  { name: 'Apr', transactions: 2780, revenue: 3908, amt: 2000, merchant: 'Merchant A', gateway: 'Gateway D', date: '2023-04-01' },
-  { name: 'May', transactions: 1890, revenue: 4800, amt: 2181, merchant: 'Merchant B', gateway: 'Gateway A', date: '2023-05-01' },
-  { name: 'Jun', transactions: 2390, revenue: 3800, amt: 2500, merchant: 'Merchant C', gateway: 'Gateway B', date: '2023-06-01' },
-  { name: 'Jul', transactions: 3490, revenue: 4300, amt: 2100, merchant: 'Merchant A', gateway: 'Gateway C', date: '2023-07-01' },
-];
-
-const initialPieData = [
-  { name: 'Gateway A', value: 400 },
-  { name: 'Gateway B', value: 300 },
-  { name: 'Gateway C', value: 300 },
-  { name: 'Gateway D', value: 200 },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
-const ReportsAnalytics = () => {
-  const [dateRange, setDateRange] = useState('');
-  const [merchant, setMerchant] = useState('');
-  const [paymentGateway, setPaymentGateway] = useState('');
-  const [filteredData, setFilteredData] = useState(initialData);
-  const [filteredPieData, setFilteredPieData] = useState(initialPieData);
 
   useEffect(() => {
-    let tempFilteredData = initialData;
+    dispatch(fetchReportsData());
+  }, [dispatch]);
 
-    if (dateRange) {
-      tempFilteredData = tempFilteredData.filter(item => item.date === dateRange);
-    }
-    if (merchant) {
-      tempFilteredData = tempFilteredData.filter(item => item.merchant === merchant);
-    }
-    if (paymentGateway) {
-      tempFilteredData = tempFilteredData.filter(item => item.gateway === paymentGateway);
-    }
-
-    setFilteredData(tempFilteredData);
-
-    // Recalculate pie data based on filtered line data
-    const gatewayCounts = tempFilteredData.reduce((acc, item) => {
-      acc[item.gateway] = (acc[item.gateway] || 0) + 1;
-      return acc;
-    }, {});
-
-    const newPieData = Object.keys(gatewayCounts).map(gateway => ({
-      name: gateway,
-      value: gatewayCounts[gateway]
-    }));
-    setFilteredPieData(newPieData);
-
-  }, [dateRange, merchant, paymentGateway]);
+  useEffect(() => {
+    dispatch(applyFilters());
+  }, [dateRange, merchant, paymentGateway, dispatch, status]);
 
   const handleDownload = (type) => {
-    if (type === 'CSV') {
-      jsonToCsvExport({ data: filteredData, filename: 'reports_analytics.csv' });
-    } else if (type === 'Excel') {
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Reports");
-      XLSX.writeFile(wb, "reports_analytics.xlsx");
-    } else if (type === 'PDF') {
-      const doc = new jsPDF();
-      doc.text("Reports & Analytics Summary", 10, 10);
-      let y = 20;
-      filteredData.forEach((row, index) => {
-        doc.text(`Month: ${row.name}, Transactions: ${row.transactions}, Revenue: ${row.revenue}`, 10, y);
-        y += 10;
-      });
-      doc.save("reports_analytics.pdf");
-    }
+    alert(`Downloading ${type} report...`);
   };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
+
+      {status === 'loading' && <div className="text-center text-blue-500 text-lg">Loading reports...</div>}
+      {status === 'failed' && <div className="text-center text-red-500 text-lg">Error: {error}</div>}
 
       {/* Report Filters */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -95,7 +44,7 @@ const ReportsAnalytics = () => {
               id="dateRange"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
+              onChange={(e) => dispatch(setDateRange(e.target.value))}
             />
           </div>
           <div>
@@ -104,7 +53,7 @@ const ReportsAnalytics = () => {
               id="merchant"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               value={merchant}
-              onChange={(e) => setMerchant(e.target.value)}
+              onChange={(e) => dispatch(setMerchant(e.target.value))}
             >
               <option value="">Select Merchant</option>
               <option value="Merchant A">Merchant A</option>
@@ -118,7 +67,7 @@ const ReportsAnalytics = () => {
               id="paymentGateway"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               value={paymentGateway}
-              onChange={(e) => setPaymentGateway(e.target.value)}
+              onChange={(e) => dispatch(setPaymentGateway(e.target.value))}
             >
               <option value="">Select Gateway</option>
               <option value="Gateway A">Gateway A</option>
@@ -134,7 +83,7 @@ const ReportsAnalytics = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Transaction Trends (Line Chart)</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={filteredData}>
+            <LineChart data={lineChartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -179,19 +128,19 @@ const ReportsAnalytics = () => {
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transactions</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Gateway</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredData.map((row, index) => (
                 <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{`2023-${index + 1 < 10 ? '0' + (index + 1) : index + 1}-01`}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Merchant {index + 1}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.transactions}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${row.revenue}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Gateway {['A', 'B', 'C', 'D'][index % 4]}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.merchant}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${row.amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.status}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.gateway}</td>
                 </tr>
               ))}
             </tbody>
@@ -227,4 +176,4 @@ const ReportsAnalytics = () => {
   );
 };
 
-export default ReportsAnalytics;
+export default ReportsAnalytic;

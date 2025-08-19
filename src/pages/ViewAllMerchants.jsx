@@ -1,22 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setMerchants,
+  setSearchTerm,
+  setFilteredMerchants,
+} from '../features/viewAllMerchants/viewAllMerchantsSlice';
 
 const ViewAllMerchants = () => {
-  const [merchants, setMerchants] = useState([
-    { id: 1, name: 'Merchant A', email: 'a@example.com', status: 'Active', registeredDate: '2023-01-15' },
-    { id: 2, name: 'Merchant B', email: 'b@example.com', status: 'Inactive', registeredDate: '2023-02-20' },
-    { id: 3, name: 'Merchant C', email: 'c@example.com', status: 'Active', registeredDate: '2023-03-10' },
-    { id: 4, name: 'Merchant D', email: 'd@example.com', status: 'Pending', registeredDate: '2023-04-01' },
-  ]);
+  const dispatch = useDispatch();
+  const { merchants, searchTerm, filteredMerchants } = useSelector(
+    (state) => state.viewAllMerchants
+  );
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
+  // Initial data load (simulated)
+  useEffect(() => {
+    dispatch(setMerchants([
+      { id: 1, name: 'Merchant A', email: 'a@example.com', status: 'Active', registeredDate: '2023-01-15' },
+      { id: 2, name: 'Merchant B', email: 'b@example.com', status: 'Inactive', registeredDate: '2023-02-20' },
+      { id: 3, name: 'Merchant C', email: 'c@example.com', status: 'Active', registeredDate: '2023-03-10' },
+      { id: 4, name: 'Merchant D', email: 'd@example.com', status: 'Pending', registeredDate: '2023-04-01' },
+    ]));
+  }, [dispatch]);
 
-  const filteredMerchants = merchants.filter(merchant => {
-    const matchesSearchTerm = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              merchant.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'All' || merchant.status === filterStatus;
-    return matchesSearchTerm && matchesStatus;
-  });
+  const handleSearchTermChange = (e) => {
+    dispatch(setSearchTerm(e.target.value));
+  };
+
+  const handleFilterStatusChange = (e) => {
+    const status = e.target.value;
+    const newFilteredMerchants = merchants.filter(merchant => {
+      const matchesSearchTerm = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                merchant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = status === 'All' || merchant.status === status;
+      return matchesSearchTerm && matchesStatus;
+    });
+    dispatch(setFilteredMerchants(newFilteredMerchants));
+  };
+
+  useEffect(() => {
+    const newFilteredMerchants = merchants.filter(merchant => {
+      const matchesSearchTerm = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                merchant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      // Assuming filterStatus is managed locally or derived from another Redux state if needed
+      // For now, let's assume it's 'All' or handled by the slice if it were part of it.
+      return matchesSearchTerm;
+    });
+    dispatch(setFilteredMerchants(newFilteredMerchants));
+  }, [merchants, searchTerm, dispatch]);
+
+  // const filteredMerchant = merchants.filter(merchant => {
+  //   const matchesSearchTerm = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //                             merchant.email.toLowerCase().includes(searchTerm.toLowerCase());
+  //   const matchesStatus = filterStatus === 'All' || merchant.status === filterStatus;
+  //   return matchesSearchTerm && matchesStatus;
+  // });
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -33,7 +70,7 @@ const ViewAllMerchants = () => {
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               placeholder="Search by name or email"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchTermChange}
             />
           </div>
           <div>
@@ -41,13 +78,12 @@ const ViewAllMerchants = () => {
             <select
               id="filterStatus"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={handleFilterStatusChange}
             >
-              <option>All</option>
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>Pending</option>
+              <option value="All">All</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Pending">Pending</option>
             </select>
           </div>
         </div>

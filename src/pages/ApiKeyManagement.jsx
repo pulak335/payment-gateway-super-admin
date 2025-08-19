@@ -1,26 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setSearchQuery, regenerateApiKey, toggleApiKeyStatus } from '../features/apiKeys/apiKeySlice';
 
 const ApiKeyManagement = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [merchants, setMerchants] = useState([
-    { id: 1, name: 'Merchant A', apiKey: 'sk_live_xxxxxxxxxxxxxx', secretKey: 'sk_test_****************', status: 'active' },
-    { id: 2, name: 'Merchant B', apiKey: 'sk_live_yyyyyyyyyyyyyy', secretKey: 'sk_test_****************', status: 'inactive' },
-    { id: 3, name: 'Merchant C', apiKey: 'sk_live_zzzzzzzzzzzzzz', secretKey: 'sk_test_****************', status: 'active' },
-  ]);
+    const dispatch = useDispatch();
+  const { merchants, searchQuery } = useSelector((state) => state.apiKeys);
 
-  const handleRegenerateKey = (id) => {
-    setMerchants(merchants.map(merchant =>
-      merchant.id === id ? { ...merchant, apiKey: `sp_live_${Math.random().toString(36).substring(2, 15)}`, secretKey: `sp_live_${Math.random().toString(36).substring(2, 32)}_sort_key_${Math.random().toString(36)}` } : merchant
-    ));
+  useEffect(() => {
+    // This useEffect can be used for initial data loading or other side effects if needed
+    // For now, the initial state is managed directly in the Redux slice
+  }, []);
+
+    const handleRegenerateKey = (id) => {
+    dispatch(regenerateApiKey({ id }));
   };
 
-  const handleToggleKeyStatus = (id) => {
-    setMerchants(merchants.map(merchant =>
-      merchant.id === id ? { ...merchant, status: merchant.status === 'active' ? 'inactive' : 'active' } : merchant
-    ));
-  };
+    const handleToggleStatus = (id) => {
+     dispatch(toggleApiKeyStatus({ id }));
+   };
 
-  const filteredMerchants = merchants.filter(merchant =>
+  const filteredMerchants = merchants.filter((merchant) =>
     merchant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -35,7 +34,7 @@ const ApiKeyManagement = () => {
             type="text"
             placeholder="Search merchants..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => dispatch(setSearchQuery(e.target.value))}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 leading-tight focus:outline-none focus:shadow-outline"
           />
         </div>

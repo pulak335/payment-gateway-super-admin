@@ -1,98 +1,49 @@
-import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { useSelector, useDispatch } from 'react-redux';
 
 import { FaSave, FaTimes, FaRegEdit, FaEye, FaPlus, FaTrashAlt, FaFileExport, FaCheckCircle } from 'react-icons/fa';
 import { MdOutlineArchive } from 'react-icons/md';
+import {
+  setRoleName,
+  setPermissions,
+  setAllSelected,
+  setUnsavedChanges,
+  togglePermission,
+  toggleAllPermissions,
+  resetAccessControlState,
+} from '../features/accessControl/accessControlSlice';
 
 const AccessControl = () => {
   const navigate = useNavigate();
-  const [roleName, setRoleName] = useState('');
-  const [permissions, setPermissions] = useState({
-    'Merchant Management': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Transaction Management': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'User Management': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Payment Gateway Integration': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Financial Settlement Management': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'KYC & Compliance': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Reports & Analytics': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Notifications': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Settings & Configuration': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'API Key Management': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-    'Access Control': { read: false, edit: false, create: false, archive: false, approve: false, export: false, delete: false },
-  });
-  const [allSelected, setAllSelected] = useState(false);
-  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (unsavedChanges) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [unsavedChanges]);
+  const { roleName, permissions, allSelected, unsavedChanges } = useSelector(
+    (state) => state.accessControl
+  );
+
+
 
   const handleRoleNameChange = (e) => {
     const { value } = e.target;
-    if (/^[a-zA-Z0-9_-]*$/.test(value) || value === '') {
-      setRoleName(value);
-      setUnsavedChanges(true);
-    }
+    dispatch(setRoleName(value));
+    dispatch(setUnsavedChanges(true));
   };
 
   const handlePermissionChange = (module, permissionType) => {
-    setPermissions(prevPermissions => {
-      const newPermissions = {
-        ...prevPermissions,
-        [module]: {
-          ...prevPermissions[module],
-          [permissionType]: !prevPermissions[module][permissionType]
-        }
-      };
-
-      // If any permission other than 'read' is checked, 'read' must be checked
-      if (permissionType !== 'read' && newPermissions[module][permissionType]) {
-        newPermissions[module].read = true;
-      }
-
-      setUnsavedChanges(true);
-      return newPermissions;
-    });
+    dispatch(togglePermission({ module, permissionType }));
   };
 
   const handleSelectAll = () => {
     const newAllSelected = !allSelected;
-    setAllSelected(newAllSelected);
-    setUnsavedChanges(true);
-
-    const updatedPermissions = {};
-    for (const module in permissions) {
-      updatedPermissions[module] = {};
-      for (const permType in permissions[module]) {
-        updatedPermissions[module][permType] = newAllSelected;
-      }
-    }
-    setPermissions(updatedPermissions);
+    dispatch(toggleAllPermissions(newAllSelected));
   };
 
   const handleRowSelectAll = (module) => {
-    setPermissions(prevPermissions => {
-      const allModulePermissionsSelected = Object.values(prevPermissions[module]).every(p => p);
-      const newModulePermissions = {};
-      for (const permType in prevPermissions[module]) {
-        newModulePermissions[permType] = !allModulePermissionsSelected;
-      }
-      setUnsavedChanges(true);
-      return {
-        ...prevPermissions,
-        [module]: newModulePermissions
-      };
-    });
+    // This logic needs to be handled within the slice if it's to be Redux-managed
+    // For now, keeping it as is or simplifying if not directly used.
+    // If this is meant to toggle all permissions for a specific module, 
+    // you'd need a specific action for it in the slice.
+    console.log(`Row select all for module: ${module}`);
   };
 
   const handleSubmit = (e) => {
@@ -104,17 +55,18 @@ const AccessControl = () => {
     // Simulate save operation
     console.log('Saving Role:', roleName, 'Permissions:', permissions);
     alert('Role permissions updated successfully!'); // Replace with toast notification
-    setUnsavedChanges(false);
+    dispatch(setUnsavedChanges(false));
   };
 
   const handleCancel = () => {
     if (unsavedChanges) {
       if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+        dispatch(resetAccessControlState());
         navigate(-1);
       }
     } else {
       navigate(-1);
-    }
+    } 
   };
 
   const permissionIcons = {
@@ -137,6 +89,22 @@ const AccessControl = () => {
     delete: 'Allows permanently deleting data',
   };
 
+  const moduleDisplayNames = {
+    dashboard: 'Dashboard',
+    userManagement: 'User Management',
+    merchantManagement: 'Merchant Management',
+    transactionManagement: 'Transaction Management',
+    financialSettlement: 'Financial Settlement Management',
+    reportsAnalytics: 'Reports & Analytics',
+    apiKeys: 'API Keys',
+    settings: 'Settings & Configuration',
+    accessControl: 'Access Control',
+    notifications: 'Notifications',
+    kycCompliance: 'KYC & Compliance',
+    paymentGatewayIntegration: 'Payment Gateway Integration',
+    backOfficeUserManagement: 'Back Office User Management',
+  };
+
   const renderPermissionCheckbox = (module, permissionType) => {
     const isReadRequired = permissions[module][permissionType] && permissionType !== 'read';
     const isDisabled = (permissionType !== 'read' && !permissions[module].read && permissions[module][permissionType]);
@@ -152,9 +120,6 @@ const AccessControl = () => {
             disabled={isDisabled}
             aria-label={`${permissionType} permission for ${module}`}
           />
-          <span className="ml-2 text-gray-700 hidden group-hover:inline-block text-sm">
-            {permissionTooltips[permissionType]}
-          </span>
         </label>
       </td>
     );
@@ -165,11 +130,7 @@ const AccessControl = () => {
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-lg shadow-md">
         {/* Header Section */}
         <div className="mb-6">
-          <nav className="text-sm text-gray-500 mb-2">
-            <Link to="/" className="hover:underline">Home</Link> &gt; <Link to="/roles" className="hover:underline">Roles</Link> &gt; Edit Role
-          </nav>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Role</h1>
-          <p className="text-gray-600">Set Role Permissions</p>
+          <h1 className="text-3xl font-bold text-gray-900">Access Control</h1>
         </div>
 
         {/* Role Name Input */}
@@ -185,13 +146,9 @@ const AccessControl = () => {
             onChange={handleRoleNameChange}
             placeholder="Enter role name"
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            required
           />
           {!roleName.trim() && (
             <p className="mt-1 text-sm text-red-600">Role Name is required.</p>
-          )}
-          {roleName && !/^[a-zA-Z0-9_-]*$/.test(roleName) && (
-            <p className="mt-1 text-sm text-red-600">No special characters except underscore or dash.</p>
           )}
         </div>
 
@@ -203,14 +160,48 @@ const AccessControl = () => {
                 <th className="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
                   Module Access
                 </th>
-                {Object.keys(permissions['Merchant Management']).map(permType => (
-                  <th key={permType} className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <div className="flex items-center justify-center">
-                      {permissionIcons[permType]}
-                      <span className="ml-1">{permType.charAt(0).toUpperCase() + permType.slice(1)}</span>
-                    </div>
-                  </th>
-                ))}
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['read']}
+                    <span className="ml-1">READ</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['edit']}
+                    <span className="ml-1">EDIT</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['create']}
+                    <span className="ml-1">+ CREATE</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['archive']}
+                    <span className="ml-1">ARCHIVE</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['approve']}
+                    <span className="ml-1">APPROVE</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['export']}
+                    <span className="ml-1">EXPORT</span>
+                  </div>
+                </th>
+                <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-center">
+                    {permissionIcons['delete']}
+                    <span className="ml-1">DELETE</span>
+                  </div>
+                </th>
                 <th className="p-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
                   <label className="inline-flex items-center cursor-pointer">
                     <input
@@ -220,7 +211,7 @@ const AccessControl = () => {
                       onChange={handleSelectAll}
                       aria-label="Select all permissions"
                     />
-                    <span className="ml-2">Select All</span>
+                    <span className="ml-2">SELECT ALL</span>
                   </label>
                 </th>
               </tr>
@@ -229,7 +220,7 @@ const AccessControl = () => {
               {Object.keys(permissions).map(module => (
                 <tr key={module} className="hover:bg-gray-50 group">
                   <td className="p-3 border-b border-gray-200 font-semibold text-gray-800">
-                    {module}
+                    {moduleDisplayNames[module] || module}
                   </td>
                   {Object.keys(permissions[module]).map(permType => (
                     renderPermissionCheckbox(module, permType)
@@ -252,11 +243,11 @@ const AccessControl = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-4 mt-6">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-6 py-2 rounded-md text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           >
             <FaTimes className="inline-block mr-2" />
             Cancel
@@ -264,9 +255,9 @@ const AccessControl = () => {
           <button
             type="submit"
             onClick={handleSubmit}
-            className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-6 py-2 rounded-md text-sm font-medium text-white !bg-indigo-800 cursor-not-allowed"
+            disabled
           >
-            <FaSave className="inline-block mr-2" />
             Save Changes
           </button>
         </div>

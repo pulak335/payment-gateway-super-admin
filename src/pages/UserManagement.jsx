@@ -1,125 +1,97 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import AddMerchantModal from '../components/AddMerchantModal';
+import {
+  setShowAddMerchantModal,
+  setSelectedMerchants,
+  setFilterStatus,
+  setFilterRole,
+  setFilterDateRange,
+  setSearchQuery,
+  setCurrentPage,
+  setNewMerchant,
+  addMerchant,
+  deleteSelectedMerchants,
+  activateSelectedMerchants,
+  suspendSelectedMerchants,
+} from '../features/userManagement/userManagementSlice';
 
 const UserManagement = () => {
-  const [showAddMerchantModal, setShowAddMerchantModal] = useState(false);
-  const [selectedMerchants, setSelectedMerchants] = useState([]);
-  
-  // Filter states
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [filterDateRange, setFilterDateRange] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const dispatch = useDispatch();
+  const { showAddMerchantModal, selectedMerchants, filterStatus, filterRole, filterDateRange, searchQuery, merchants, currentPage, merchantsPerPage, newMerchant } = useSelector((state) => state.userManagement);
 
-  const merchants = [
-    { id: 1, name: 'Merchant A', email: 'a@example.com', status: 'Active', role: 'Admin', registrationDate: '2023-01-15' },
-    { id: 2, name: 'Merchant B', email: 'b@example.com', status: 'Suspended', role: 'User', registrationDate: '2023-02-20' },
-    { id: 3, name: 'Merchant C', email: 'c@example.com', status: 'Active', role: 'User', registrationDate: '2023-03-10' },
-    { id: 4, name: 'Merchant D', email: 'd@example.com', status: 'Active', role: 'Admin', registrationDate: '2023-01-20' },
-    { id: 5, name: 'Merchant E', email: 'e@example.com', status: 'Suspended', role: 'User', registrationDate: '2023-02-25' },
-    { id: 6, name: 'Merchant F', email: 'f@example.com', status: 'Active', role: 'User', registrationDate: '2023-03-15' },
-    { id: 7, name: 'Merchant G', email: 'g@example.com', status: 'Active', role: 'Admin', registrationDate: '2023-01-25' },
-    { id: 8, name: 'Merchant H', email: 'h@example.com', status: 'Suspended', role: 'User', registrationDate: '2023-03-01' },
-    { id: 9, name: 'Merchant I', email: 'i@example.com', status: 'Active', role: 'User', registrationDate: '2023-03-20' },
-    { id: 10, name: 'Merchant J', email: 'j@example.com', status: 'Active', role: 'Admin', registrationDate: '2023-02-01' },
-    { id: 11, name: 'Merchant K', email: 'k@example.com', status: 'Suspended', role: 'User', registrationDate: '2023-03-05' },
-    { id: 12, name: 'Merchant L', email: 'l@example.com', status: 'Active', role: 'User', registrationDate: '2023-03-25' },
-  ];
-
-  // Filter merchants based on filter states
   const filteredMerchants = merchants.filter(merchant => {
     return (
       (filterStatus === '' || merchant.status.toLowerCase().includes(filterStatus.toLowerCase())) &&
       (filterRole === '' || merchant.role.toLowerCase().includes(filterRole.toLowerCase())) &&
-(filterDateRange === '' || merchant.registrationDate.includes(filterDateRange)) &&
+      (filterDateRange === '' || merchant.registrationDate.includes(filterDateRange)) &&
       (searchQuery === '' || merchant.name.toLowerCase().includes(searchQuery.toLowerCase()) || merchant.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [merchantsPerPage] = useState(5);
-
-  // Get current merchants
   const indexOfLastMerchant = currentPage * merchantsPerPage;
   const indexOfFirstMerchant = indexOfLastMerchant - merchantsPerPage;
   const currentMerchants = filteredMerchants.slice(indexOfFirstMerchant, indexOfLastMerchant);
 
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => dispatch(setCurrentPage(pageNumber));
 
   const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(merchants.length / merchantsPerPage); i++) {
+  for (let i = 1; i <= Math.ceil(filteredMerchants.length / merchantsPerPage); i++) {
     pageNumbers.push(i);
   }
 
-  const [newMerchant, setNewMerchant] = useState({
-    name: '',
-    email: '',
-    role: 'User',
-  });
+  useEffect(() => {
+    dispatch(setCurrentPage(1));
+  }, [filterStatus, filterRole, filterDateRange, searchQuery, merchants, dispatch]);
 
-  const toggleAddMerchantModal = () => {
-    setShowAddMerchantModal(!showAddMerchantModal);
-    setNewMerchant({ name: '', email: '', role: 'User' }); // Reset form fields when closing modal
-  };
+  // const [newMerchant, setNewMerchant] = useState({
+  //   name: '',
+  //   email: '',
+  //   role: 'User',
+  // });
 
-  const handleAddMerchant = (e) => {
-    e.preventDefault();
-    // Implement actual add merchant logic here
-    const id = merchants.length > 0 ? Math.max(...merchants.map(m => m.id)) + 1 : 1;
-    const registrationDate = new Date().toISOString().slice(0, 10);
-    const status = 'Active'; // New merchants are active by default
-    const merchantToAdd = { ...newMerchant, id, status, registrationDate };
-    alert(`Adding merchant: ${JSON.stringify(merchantToAdd)}`);
-    // In a real application, you would dispatch an action to add the merchant to your state/database
-    // For now, we'll just close the modal and log the new merchant
-    toggleAddMerchantModal();
-  };
+
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedMerchants(merchants.map(merchant => merchant.id));
+      dispatch(setSelectedMerchants(filteredMerchants.map(merchant => merchant.id)));
     } else {
-      setSelectedMerchants([]);
+      dispatch(setSelectedMerchants([]));
     }
   };
 
   const handleSelectMerchant = (id) => {
-    setSelectedMerchants(prevSelected =>
-      prevSelected.includes(id)
-        ? prevSelected.filter(merchantId => merchantId !== id)
-        : [...prevSelected, id]
-    );
+    dispatch(setSelectedMerchants(
+      selectedMerchants.includes(id)
+        ? selectedMerchants.filter(merchantId => merchantId !== id)
+        : [...selectedMerchants, id]
+    ));
   };
 
   const handleActivateSelected = () => {
-    // In a real application, you would dispatch an action to activate the merchants
-    alert(`Activating merchants: ${selectedMerchants.join(', ')}`);
-    setSelectedMerchants([]);
+    dispatch(activateSelectedMerchants());
   };
 
   const handleSuspendSelected = () => {
-    // In a real application, you would dispatch an action to suspend the merchants
-    alert(`Suspending merchants: ${selectedMerchants.join(', ')}`);
-    setSelectedMerchants([]);
+    dispatch(suspendSelectedMerchants());
   };
 
   const handleDeleteSelected = () => {
     if (window.confirm(`Are you sure you want to delete merchants: ${selectedMerchants.join(', ')}?`)) {
-      // In a real application, you would dispatch an action to delete the merchants
-      alert(`Deleting merchants: ${selectedMerchants.join(', ')}`);
-      setSelectedMerchants([]);
+      dispatch(deleteSelectedMerchants());
     }
   };
 
   return (
     <div className="p-4 bg-gray-100">
+      {showAddMerchantModal && <AddMerchantModal />} 
       <h2 className="text-2xl font-semibold text-purple-800 dark:text-white mb-4">User Management</h2>
 
       {/* Quick Actions for User Management */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
         <h3 className="text-lg font-semibold text-purple-700 dark:text-gray-300 mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-4">
-          <button onClick={toggleAddMerchantModal}  className="!bg-purple-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-800">Add Merchant</button>
+          <button onClick={() => dispatch(setShowAddMerchantModal(true))}  className="!bg-purple-600 !hover:bg-purple-700 text-white font-bold py-2 px-4 rounded disabled:bg-purple-800">Add Merchant</button>
           <button onClick={handleActivateSelected} disabled={selectedMerchants.length === 0} className="!bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:!bg-gray-200">Activate Selected</button>
           <button onClick={handleSuspendSelected} disabled={selectedMerchants.length === 0} className="!bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded disabled:!bg-gray-200">Suspend Selected</button>
           <button onClick={handleDeleteSelected} disabled={selectedMerchants.length === 0} className="!bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:!bg-gray-200">Delete Selected</button>
@@ -131,19 +103,19 @@ const UserManagement = () => {
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Merchant List</h3>
         {/* Filters */}
         <div className="flex space-x-4 mb-4">
-          <input type="text" placeholder="Filter by Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} />
-          <input type="text" placeholder="Filter by Role" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} />
-          <input type="text" placeholder="Registration Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterDateRange} onChange={(e) => setFilterDateRange(e.target.value)} />
+          <input type="text" placeholder="Filter by Status" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterStatus} onChange={(e) => dispatch(setFilterStatus(e.target.value))} />
+          <input type="text" placeholder="Filter by Role" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterRole} onChange={(e) => dispatch(setFilterRole(e.target.value))} />
+          <input type="text" placeholder="Registration Date Range" className="p-2 border rounded dark:bg-gray-700 dark:text-white" value={filterDateRange} onChange={(e) => dispatch(setFilterDateRange(e.target.value))} />
         </div>
         <div className="mb-4">
-          <input type="text" placeholder="Search by Email or Name" className="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <input type="text" placeholder="Search by Email or Name" className="p-2 border rounded w-full dark:bg-gray-700 dark:text-white" value={searchQuery} onChange={(e) => dispatch(setSearchQuery(e.target.value))} />
         </div>
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white dark:bg-gray-800">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b text-left text-gray-700 dark:text-gray-300"><input type="checkbox" onChange={handleSelectAll} checked={selectedMerchants.length === merchants.length && merchants.length > 0} /></th>
+                <th className="py-2 px-4 border-b text-left text-gray-700 dark:text-gray-300"><input type="checkbox" onChange={handleSelectAll} checked={selectedMerchants.length === filteredMerchants.length && filteredMerchants.length > 0} /></th>
                 <th className="py-2 px-4 border-b text-left text-gray-700 dark:text-gray-300">Merchant Name</th>
                 <th className="py-2 px-4 border-b text-left text-gray-700 dark:text-gray-300">Email</th>
                 <th className="py-2 px-4 border-b text-left text-gray-700 dark:text-gray-300">Status</th>
@@ -175,12 +147,13 @@ const UserManagement = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+
+            ))}
             </tbody>
           </table>
         </div>
         {/* Pagination Controls */}
-        <div className="flex justify-center mt-4">
+        {!showAddMerchantModal && <div className="flex justify-center mt-4">
           <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <button
               onClick={() => paginate(currentPage - 1)}
@@ -190,6 +163,7 @@ const UserManagement = () => {
               Previous
             </button>
             {pageNumbers.map(number => (
+              <React.Fragment key={number}>
               <button
                 key={number}
                 onClick={() => paginate(number)}
@@ -197,6 +171,7 @@ const UserManagement = () => {
               >
                 {number}
               </button>
+              </React.Fragment>
             ))}
             <button
               onClick={() => paginate(currentPage + 1)}
@@ -205,39 +180,11 @@ const UserManagement = () => {
             >
               Next
             </button>
+            
           </nav>
-        </div>
+        </div>}
+        
       </div>
-
-      {/* Add Merchant Modal */}
-      {showAddMerchantModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-1/2">
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Add New Merchant</h3>
-            <form onSubmit={handleAddMerchant}>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="merchantName">Merchant Name</label>
-                <input type="text" id="merchantName" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:bg-gray-700 dark:text-white leading-tight focus:outline-none focus:shadow-outline" value={newMerchant.name} onChange={(e) => setNewMerchant({ ...newMerchant, name: e.target.value })} />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="merchantEmail">Email</label>
-                <input type="email" id="merchantEmail" className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:bg-gray-700 dark:text-white leading-tight focus:outline-none focus:shadow-outline" value={newMerchant.email} onChange={(e) => setNewMerchant({ ...newMerchant, email: e.target.value })} />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="merchantRole">Role</label>
-                <select id="merchantRole" className="shadow border rounded w-full py-2 px-3 text-gray-700 dark:bg-gray-700 dark:text-white leading-tight focus:outline-none focus:shadow-outline" value={newMerchant.role} onChange={(e) => setNewMerchant({ ...newMerchant, role: e.target.value })}>
-                  <option>Admin</option>
-                  <option>User</option>
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <button type="button" onClick={toggleAddMerchantModal} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">Cancel</button>
-                <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Add Merchant</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

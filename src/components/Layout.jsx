@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FaKey, FaUserShield, FaUser, FaUserCog , FaUsers  } from 'react-icons/fa';
+import { FaKey, FaUserShield, FaUser, FaUserCog , FaUsers, FaLifeRing, FaClipboardList, FaComments  } from 'react-icons/fa';
 import { MdSpaceDashboard , MdOutlinePayment, MdJoinFull } from "react-icons/md";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
-import { SiDocsdotrs } from "react-icons/si";
+import { SiDocsdotrs, SiPayloadcms } from "react-icons/si";
 import { TbReport } from "react-icons/tb";
 import { IoIosSettings } from "react-icons/io";
 
@@ -83,6 +83,22 @@ const Layout = ({ children }) => {
             <NavLink to="/access-control" className={({ isActive }) => `flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${isActive ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
               <FaUserShield className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
               <span className="flex-1 ml-3 whitespace-nowrap">Access Control</span>
+            </NavLink>
+            <NavLink to="/content-management" className={({ isActive }) => `flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${isActive ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
+              <SiPayloadcms className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <span className="flex-1 ml-3 whitespace-nowrap">CMS</span>
+            </NavLink>
+            <NavLink to="/support" className={({ isActive }) => `flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${isActive ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
+              <FaLifeRing className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <span className="flex-1 ml-3 whitespace-nowrap">Support</span>
+            </NavLink>
+            <NavLink to="/complaint-management" className={({ isActive }) => `flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${isActive ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
+              <FaClipboardList className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <span className="flex-1 ml-3 whitespace-nowrap">Complaint Management</span>
+            </NavLink>
+            <NavLink to="/live-chat-support" className={({ isActive }) => `flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group ${isActive ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
+              <FaComments className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <span className="flex-1 ml-3 whitespace-nowrap">Live Chat Support</span>
             </NavLink>
             
         </nav>

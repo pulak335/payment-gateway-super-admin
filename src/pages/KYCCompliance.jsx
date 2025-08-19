@@ -1,97 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { MdFileDownload } from "react-icons/md";
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setKycRequests,
+  setShowFeedbackModal,
+  setSelectedRequest,
+  setFeedback,
+  setDocumentViewerOpen,
+  setCurrentDocument,
+  setShowFlagModal,
+  setFlagReason,
+  setSearchTerm,
+  approveRejectRequest,
+  resetFeedbackAndSelection,
+  resetDocumentViewer,
+  resetFlagging,
+} from '../features/kycCompliance/kycComplianceSlice';
 
 const KYCCompliance = () => {
-  const [kycRequests, setKycRequests] = useState([
-    {
-      id: 1,
-      merchantName: 'Merchant A',
-      submissionDate: '2023-10-25',
-      status: 'Pending',
-      documents: {
-        id: 'https://via.placeholder.com/300x200?text=ID+Card',
-        businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
-      },
-    },
-    {
-      id: 2,
-      merchantName: 'Merchant B',
-      submissionDate: '2023-10-20',
-      status: 'Approved',
-      documents: {
-        id: 'https://via.placeholder.com/300x200?text=ID+Card',
-        businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
-      },
-    },
-    {
-      id: 3,
-      merchantName: 'Merchant C',
-      submissionDate: '2023-10-22',
-      status: 'Rejected',
-      documents: {
-        id: 'https://via.placeholder.com/300x200?text=ID+Card',
-        businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
-      },
-    },
-  ]);
+  const dispatch = useDispatch();
+  const { kycRequests, showFeedbackModal, selectedRequest, feedback, documentViewerOpen, currentDocument, showFlagModal, flagReason, searchTerm } = useSelector((state) => state.kycCompliance);
 
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [feedback, setFeedback] = useState('');
-  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState('');
-  const [showFlagModal, setShowFlagModal] = useState(false);
-  const [flagReason, setFlagReason] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  // Initialize kycRequests with sample data if empty (or fetch from API)
+  // This is a placeholder, in a real app you'd fetch this data
+  // useEffect(() => {
+  //   if (kycRequests.length === 0) {
+  //     dispatch(setKycRequests([
+  //       {
+  //         id: 1,
+  //         merchantName: 'Merchant A',
+  //         submissionDate: '2023-10-25',
+  //         status: 'Pending',
+  //         documents: {
+  //           id: 'https://via.placeholder.com/300x200?text=ID+Card',
+  //           businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
+  //         },
+  //       },
+  //       {
+  //         id: 2,
+  //         merchantName: 'Merchant B',
+  //         submissionDate: '2023-10-20',
+  //         status: 'Approved',
+  //         documents: {
+  //           id: 'https://via.placeholder.com/300x200?text=ID+Card',
+  //           businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
+  //         },
+  //       },
+  //       {
+  //         id: 3,
+  //         merchantName: 'Merchant C',
+  //         submissionDate: '2023-10-22',
+  //         status: 'Rejected',
+  //         documents: {
+  //           id: 'https://via.placeholder.com/300x200?text=ID+Card',
+  //           businessLicense: 'https://via.placeholder.com/300x200?text=Business+License',
+  //         },
+  //       },
+  //     ]));
+  //   }
+  // }, [dispatch, kycRequests.length]);
 
   const handleApproveReject = (request, action) => {
-    setSelectedRequest({ ...request, action });
-    setShowFeedbackModal(true);
+    dispatch(setSelectedRequest({ ...request, action }));
+    dispatch(setShowFeedbackModal(true));
   };
 
   const confirmAction = () => {
     if (selectedRequest) {
-      setKycRequests(kycRequests.map((req) =>
-        req.id === selectedRequest.id
-          ? { ...req, status: selectedRequest.action === 'approve' ? 'Approved' : 'Rejected' }
-          : req
-      ));
+      dispatch(approveRejectRequest({ id: selectedRequest.id, actionType: selectedRequest.action }));
       console.log(`Feedback for ${selectedRequest.merchantName}: ${feedback}`);
-      setShowFeedbackModal(false);
-      setSelectedRequest(null);
-      setFeedback('');
+      dispatch(resetFeedbackAndSelection());
     }
   };
 
   const cancelAction = () => {
-    setShowFeedbackModal(false);
-    setSelectedRequest(null);
-    setFeedback('');
+    dispatch(resetFeedbackAndSelection());
   };
 
   const viewDocument = (docUrl) => {
-    setCurrentDocument(docUrl);
-    setDocumentViewerOpen(true);
+    dispatch(setCurrentDocument(docUrl));
+    dispatch(setDocumentViewerOpen(true));
   };
 
   const closeDocumentViewer = () => {
-    setDocumentViewerOpen(false);
-    setCurrentDocument('');
+    dispatch(resetDocumentViewer());
   };
 
   const handleFlagMerchant = (request) => {
-    setSelectedRequest(request);
-    setShowFlagModal(true);
+    dispatch(setSelectedRequest(request));
+    dispatch(setShowFlagModal(true));
   };
 
   const confirmFlag = () => {
     if (selectedRequest) {
       console.log(`Flagging ${selectedRequest.merchantName} for reason: ${flagReason}`);
-      // Logic to flag merchant
-      setShowFlagModal(false);
-      setSelectedRequest(null);
-      setFlagReason('');
+      // Logic to flag merchant (dispatch an action if flagging state needs to be managed in Redux)
+      dispatch(resetFlagging());
     }
   };
 
@@ -112,9 +117,7 @@ const KYCCompliance = () => {
   };
 
   const cancelFlag = () => {
-    setShowFlagModal(false);
-    setSelectedRequest(null);
-    setFlagReason('');
+    dispatch(resetFlagging());
   };
 
   return (
